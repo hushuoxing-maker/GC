@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>古月·国潮风门头提示词生成器</title>
+<title>古月·国潮风提示词生成器</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Microsoft YaHei",sans-serif;}
 body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:100vh; padding:20px 0 60px; color:#fff;}
@@ -30,7 +30,7 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 <body>
 
 <div class="header">
-  <h1>🌙 古月·国潮风门头提示词生成器</h1>
+  <h1>🌙 古月·国潮风提示词生成器</h1>
   <p>白天/夜晚｜字体多版本｜8K写实｜可施工</p>
 </div>
 
@@ -66,7 +66,7 @@ const FONT_VARIANTS=[
 ];
 
 /**
- * 生成单条提示词（已移除门头造型/材质相关内容）
+ * 生成单条提示词（完全移除造型/门头相关内容）
  * @param {string} industry - 店铺行业类型
  * @returns {string} 生成的提示词
  */
@@ -79,8 +79,11 @@ function createPrompt(industry){
     ? "夜晚效果，霓虹灯光，强光发光字，氛围灯反射"
     : "白天效果，自然光照，正面柔光，无反光";
 
-  // 核心修改：移除了「烤漆板、亚克力发光字、不锈钢包边、装饰灯带」等门头造型/材质描述
-  return `${timeDesc}，店铺正立面完整展示，无任何遮挡，正面平视视角，无透视畸变，东方国潮风格，年轻潮流感，${industry}店铺，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
+  // 彻底移除所有造型/门头相关描述：
+  // 1. 去掉「店铺正立面完整展示、无任何遮挡、正面平视视角、无透视畸变」（造型视角相关）
+  // 2. 去掉「店铺/门头」相关表述
+  // 3. 仅保留核心的视觉效果、风格、行业、标语、字体、精度要求
+  return `${timeDesc}，东方国潮风格，年轻潮流感，${industry}，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
 }
 
 /**
@@ -175,7 +178,7 @@ function downloadTxt(){
     const blob=new Blob([allPrompts.join("\n\n")],{type:"text/plain;charset=utf-8"});
     const link=document.createElement("a");
     link.href=URL.createObjectURL(blob);
-    link.download="国潮风门头提示词_"+new Date().getTime()+".txt";
+    link.download="国潮风提示词_"+new Date().getTime()+".txt";
     link.click();
     URL.revokeObjectURL(link.href);
   }catch(err){
