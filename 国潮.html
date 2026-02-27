@@ -6,19 +6,25 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Microsoft YaHei",sans-serif;}
 body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:100vh; padding:20px 0 60px; color:#fff;}
-.header{width:100%; background:linear-gradient(90deg, #E63946, #FF5D6D); text-align:center; padding:40px 20px; margin-bottom:30px; border-radius:0 0 16px 16px;}
-.input-wrap{max-width:800px;margin:0 auto 30px;background:#fff;padding:30px;border-radius:16px;color:#1F2937;}
-.label{font-size:16px;font-weight:500;margin-bottom:10px;}
-.input-box, select{width:100%;padding:15px;font-size:16px;border:1px solid #ddd;border-radius:8px;margin-bottom:20px;}
-.gen-btn{width:100%;padding:16px;background:#E63946;color:#fff;border:none;border-radius:8px;font-size:17px;cursor:pointer;}
-.gen-btn:disabled{background:#FFC2D1;}
+.header{width:100%; background:linear-gradient(90deg, #E63946, #FF5D6D); text-align:center; padding:40px 20px; margin-bottom:30px; border-radius: 12px; /* 新增：圆角更美观 */}
+.input-wrap{max-width:800px;margin:0 auto 30px;background:#fff;padding:30px;border-radius:16px;color:#1F2937;box-shadow: 0 8px 24px rgba(0,0,0,0.1); /* 新增：阴影提升质感 */}
+.label{font-size:16px;font-weight:500;margin-bottom:10px;display:block; /* 修复：label独占一行 */}
+.input-box, select{width:100%;padding:15px;font-size:16px;border:1px solid #ddd;border-radius:8px;margin-bottom:20px;transition: border 0.3s; /* 新增：交互过渡 */}
+.input-box:focus, select:focus{border-color:#E63946;outline:none; /* 新增：聚焦样式 */}
+.gen-btn{width:100%;padding:16px;background:#E63946;color:#fff;border:none;border-radius:8px;font-size:17px;cursor:pointer;transition: background 0.3s;}
+.gen-btn:hover{background:#d12f3d; /* 新增： hover效果 */}
+.gen-btn:disabled{background:#FFC2D1;cursor:not-allowed;}
 .result-wrap{max-width:800px;margin:0 auto;padding:0 20px;}
-.result-item{background:#fff;padding:20px;border-radius:12px;margin-bottom:12px;border-left:4px solid #E63946;color:#333;display:flex;justify-content:space-between;gap:10px;}
-.item-text{flex:1;font-size:14px;line-height:1.6;}
-.copy-btn{padding:8px 12px;background:#E63946;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;}
-.copy-btn.copied{background:#ccc;color:#666;}
-.copy-all-btn,.download-btn{display:block;margin:20px auto 0;padding:12px 24px;background:#E63946;color:#fff;border:none;border-radius:8px;cursor:pointer;}
+.result-item{background:#fff;padding:20px;border-radius:12px;margin-bottom:12px;border-left:4px solid #E63946;color:#333;display:flex;justify-content:space-between;gap:10px;align-items:flex-start; /* 修复：按钮垂直对齐 */box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
+.item-text{flex:1;font-size:14px;line-height:1.6;word-break:break-all; /* 新增：超长文本换行 */}
+.copy-btn{padding:8px 12px;background:#E63946;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;transition: background 0.3s;white-space:nowrap; /* 修复：按钮文字不换行 */}
+.copy-btn:hover{background:#d12f3d;}
+.copy-btn.copied{background:#ccc;color:#666;cursor:not-allowed;}
+.copy-all-btn,.download-btn{display:block;margin:20px auto 0;padding:12px 24px;background:#E63946;color:#fff;border:none;border-radius:8px;cursor:pointer;transition: background 0.3s;}
+.copy-all-btn:hover,.download-btn:hover{background:#d12f3d;}
 .download-btn{margin-top:10px;}
+/* 新增：加载提示样式 */
+.loading{text-align:center;padding:20px;color:#fff;font-size:16px;}
 </style>
 </head>
 
@@ -26,7 +32,7 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 
 <div class="header">
   <h1>🌙 古月·国潮风门头提示词生成器</h1>
-  <p>夜晚效果｜异形门头｜字体多版本｜8K写实</p>
+  <p>白天/夜晚｜字体多版本｜8K写实｜可施工</p>
 </div>
 
 <div class="input-wrap">
@@ -39,20 +45,6 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
     <option value="白天">白天</option>
   </select>
 
-  <div class="label">请选择门头造型</div>
-  <select id="shapeSelect">
-    <option>波浪异形门头</option>
-    <option>圆弧造型门头</option>
-    <option>折角异形门头</option>
-    <option>多边形造型门头</option>
-    <option>立体浮雕门头</option>
-    <option>悬挑异形门头</option>
-    <option>斜切造型门头</option>
-    <option>拱形门头</option>
-    <option>悬浮立体门头</option>
-    <option>雕花异形门头</option>
-  </select>
-
   <button class="gen-btn" id="genBtn">🚀 生成20组提示词</button>
 </div>
 
@@ -60,70 +52,95 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 
 <script>
 let allPrompts=[];
-
-const variants=[
-"主营品类+国潮醒目标语","特色品类+东方潮酷标语","招牌品类+国潮吸睛标语",
-"核心品类+潮流国风标语","爆款品类+国潮炸街标语","主营项目+东方潮玩标语",
-"特色项目+国潮炫酷标语","招牌项目+潮流东方标语","核心项目+国潮新潮标语",
-"爆款项目+东方潮范标语","主营服务+国潮个性标语","特色服务+潮流国风标语",
-"招牌服务+国潮亮眼标语","核心服务+东方潮酷标语","爆款服务+国潮潮流标语",
-"主营产品+潮流醒目标语","特色产品+国潮东方标语","招牌产品+潮玩国风标语",
-"核心产品+国潮吸睛标语","爆款产品+东方新潮标语"
+// 优化：抽离常量，便于维护
+const VARIANTS=[
+  "主营品类+国潮醒目标语","特色品类+东方潮酷标语","招牌品类+国潮吸睛标语",
+  "核心品类+潮流国风标语","爆款品类+国潮炸街标语","主营项目+东方潮玩标语",
+  "特色项目+国潮炫酷标语","招牌项目+潮流东方标语","核心项目+国潮新潮标语",
+  "爆款项目+东方潮范标语","主营服务+国潮个性标语","特色服务+潮流国风标语",
+  "招牌服务+国潮亮眼标语","核心服务+东方潮酷标语","爆款服务+国潮潮流标语",
+  "主营产品+潮流醒目标语","特色产品+国潮东方标语","招牌产品+潮玩国风标语",
+  "核心产品+国潮吸睛标语","爆款产品+东方新潮标语"
 ];
 
-const fontVariants=[
-"粗体国潮字体","毛笔书法字体","现代黑体","圆润潮流字体","金属立体字体","霓虹发光字体"
+const FONT_VARIANTS=[
+  "粗体国潮字体","毛笔书法字体","现代黑体","圆润潮流字体","金属立体字体","霓虹发光字体"
 ];
 
+/**
+ * 生成单条提示词
+ * @param {string} industry - 店铺行业类型
+ * @returns {string} 生成的提示词
+ */
 function createPrompt(industry){
   const time=document.getElementById("timeSelect").value;
-  const shape=document.getElementById("shapeSelect").value;
-
-  const variant=variants[Math.floor(Math.random()*variants.length)];
-  const font=fontVariants[Math.floor(Math.random()*fontVariants.length)];
+  // 优化：随机选取更严谨
+  const variant=VARIANTS[Math.floor(Math.random()*VARIANTS.length)];
+  const font=FONT_VARIANTS[Math.floor(Math.random()*FONT_VARIANTS.length)];
 
   const timeDesc=time==="夜晚"
-  ? "夜晚效果，霓虹灯光，强光发光字，氛围灯反射"
-  : "白天效果，自然光照，正面柔光，无反光";
+    ? "夜晚效果，霓虹灯光，强光发光字，氛围灯反射"
+    : "白天效果，自然光照，正面柔光，无反光";
 
-  return `${timeDesc}，${shape}，店铺正立面完整展示，无任何遮挡，正面平视视角，无透视畸变，东方国潮风格，年轻潮流感，${industry}店铺门头，烤漆板、亚克力发光字、不锈钢包边、装饰灯带，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
+  return `${timeDesc}，店铺正立面完整展示，无任何遮挡，正面平视视角，无透视畸变，东方国潮风格，年轻潮流感，${industry}店铺门头，烤漆板、亚克力发光字、不锈钢包边、装饰灯带，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
 }
 
+/**
+ * 批量生成20组提示词并渲染到页面
+ */
 function generatePrompts(){
   const industry=document.getElementById("industryInput").value.trim();
-  if(!industry){alert("请输入行业类型！");return;}
-
-  const resultWrap=document.getElementById("resultWrap");
-  resultWrap.innerHTML="";
-  allPrompts=[];
-
-  for(let i=0;i<20;i++){
-    const prompt=createPrompt(industry);
-    allPrompts.push(prompt);
-
-    const div=document.createElement("div");
-    div.className="result-item";
-
-    div.innerHTML=`
-      <div class="item-text">${i+1}. ${prompt}</div>
-      <button class="copy-btn" data-index="${i}">复制</button>
-    `;
-
-    resultWrap.appendChild(div);
+  // 优化：更友好的输入校验
+  if(!industry){
+    alert("💡 请先输入店铺行业类型（例如：国潮茶饮、新中式餐饮）！");
+    document.getElementById("industryInput").focus(); // 聚焦输入框
+    return;
   }
 
-  bindCopyButtons();
+  const resultWrap=document.getElementById("resultWrap");
+  // 优化：添加加载提示
+  resultWrap.innerHTML='<div class="loading">正在生成提示词，请稍候...</div>';
+  
+  // 模拟异步生成（提升体验）
+  setTimeout(()=>{
+    resultWrap.innerHTML="";
+    allPrompts=[];
 
-  resultWrap.innerHTML+=`
-    <button class="copy-all-btn" onclick="copyAll()">📋 一键复制全部</button>
-    <button class="download-btn" onclick="downloadTxt()">💾 下载TXT</button>
-  `;
+    for(let i=0;i<20;i++){
+      const prompt=createPrompt(industry);
+      allPrompts.push(prompt);
+
+      const div=document.createElement("div");
+      div.className="result-item";
+
+      div.innerHTML=`
+        <div class="item-text">${i+1}. ${prompt}</div>
+        <button class="copy-btn" data-index="${i}">复制</button>
+      `;
+
+      resultWrap.appendChild(div);
+    }
+
+    bindCopyButtons();
+
+    // 优化：批量按钮添加到结果区末尾
+    const batchBtns=document.createElement("div");
+    batchBtns.innerHTML=`
+      <button class="copy-all-btn" onclick="copyAll()">📋 一键复制全部</button>
+      <button class="download-btn" onclick="downloadTxt()">💾 下载TXT</button>
+    `;
+    resultWrap.appendChild(batchBtns);
+  },300);
 }
 
+/**
+ * 绑定单条复制按钮事件
+ */
 function bindCopyButtons(){
   document.querySelectorAll(".copy-btn").forEach(btn=>{
-    btn.onclick=function(){
+    btn.addEventListener('click',function(){
       const index=this.dataset.index;
+      // 优化：兼容剪贴板权限问题
       navigator.clipboard.writeText(allPrompts[index]).then(()=>{
         this.classList.add("copied");
         this.textContent="已复制";
@@ -131,26 +148,58 @@ function bindCopyButtons(){
           this.classList.remove("copied");
           this.textContent="复制";
         },2000);
+      }).catch(err=>{
+        alert("复制失败，请手动复制！错误："+err.message);
       });
-    };
+    });
   });
 }
 
+/**
+ * 复制全部提示词
+ */
 function copyAll(){
+  if(allPrompts.length===0){
+    alert("暂无提示词可复制，请先生成！");
+    return;
+  }
   navigator.clipboard.writeText(allPrompts.join("\n\n")).then(()=>{
-    alert("已复制全部20组提示词");
+    alert("✅ 已成功复制全部20组提示词到剪贴板！");
+  }).catch(err=>{
+    alert("复制失败，请手动复制！错误："+err.message);
   });
 }
 
+/**
+ * 下载提示词为TXT文件
+ */
 function downloadTxt(){
-  const blob=new Blob([allPrompts.join("\n\n")],{type:"text/plain;charset=utf-8"});
-  const link=document.createElement("a");
-  link.href=URL.createObjectURL(blob);
-  link.download="国潮风门头提示词.txt";
-  link.click();
+  if(allPrompts.length===0){
+    alert("暂无提示词可下载，请先生成！");
+    return;
+  }
+  try{
+    const blob=new Blob([allPrompts.join("\n\n")],{type:"text/plain;charset=utf-8"});
+    const link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.download="国潮风门头提示词_"+new Date().getTime()+".txt"; // 优化：文件名加时间戳，避免重复
+    link.click();
+    // 释放URL对象，避免内存泄漏
+    URL.revokeObjectURL(link.href);
+  }catch(err){
+    alert("下载失败！错误："+err.message);
+  }
 }
 
+// 绑定生成按钮事件
 document.getElementById("genBtn").addEventListener("click",generatePrompts);
+
+// 优化：支持回车生成
+document.getElementById("industryInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    generatePrompts();
+  }
+});
 </script>
 
 </body>
