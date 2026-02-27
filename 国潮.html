@@ -31,18 +31,12 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 
 <div class="header">
   <h1>🌙 古月·国潮风提示词生成器</h1>
-  <p>白天/夜晚｜字体多版本｜8K写实｜可施工</p>
+  <p>国潮风格｜字体多版本｜8K写实｜可施工</p>
 </div>
 
 <div class="input-wrap">
   <div class="label">请输入店铺行业类型</div>
   <input type="text" class="input-box" id="industryInput" placeholder="例如：国潮茶饮、新中式餐饮、文创周边">
-
-  <div class="label">请选择时间效果</div>
-  <select id="timeSelect">
-    <option value="夜晚" selected>夜晚</option>
-    <option value="白天">白天</option>
-  </select>
 
   <button class="gen-btn" id="genBtn">🚀 生成20组提示词</button>
 </div>
@@ -62,28 +56,28 @@ const VARIANTS=[
 ];
 
 const FONT_VARIANTS=[
-  "粗体国潮字体","毛笔书法字体","现代黑体","圆润潮流字体","金属立体字体","霓虹发光字体"
+  "粗体国潮字体","毛笔书法字体","现代黑体","圆润潮流字体","金属立体字体","国风发光字体"
+];
+
+// 新增：国潮风核心描述词库，保证提示词聚焦国潮
+const GUOCHAO_STYLES=[
+  "传统纹样融合现代设计","东方美学与潮流结合","国潮色彩搭配（中国红、琉璃黄、青黛蓝）",
+  "非遗工艺质感","中式对称美学","国潮IP元素融入","传统水墨肌理","东方禅意氛围",
+  "新中式潮流风格","国潮视觉符号系统"
 ];
 
 /**
- * 生成单条提示词（完全移除造型/门头相关内容）
+ * 生成单条提示词（仅保留国潮风核心效果，移除所有时间/霓虹相关内容）
  * @param {string} industry - 店铺行业类型
  * @returns {string} 生成的提示词
  */
 function createPrompt(industry){
-  const time=document.getElementById("timeSelect").value;
   const variant=VARIANTS[Math.floor(Math.random()*VARIANTS.length)];
   const font=FONT_VARIANTS[Math.floor(Math.random()*FONT_VARIANTS.length)];
+  const guochaoStyle=GUOCHAO_STYLES[Math.floor(Math.random()*GUOCHAO_STYLES.length)];
 
-  const timeDesc=time==="夜晚"
-    ? "夜晚效果，霓虹灯光，强光发光字，氛围灯反射"
-    : "白天效果，自然光照，正面柔光，无反光";
-
-  // 彻底移除所有造型/门头相关描述：
-  // 1. 去掉「店铺正立面完整展示、无任何遮挡、正面平视视角、无透视畸变」（造型视角相关）
-  // 2. 去掉「店铺/门头」相关表述
-  // 3. 仅保留核心的视觉效果、风格、行业、标语、字体、精度要求
-  return `${timeDesc}，东方国潮风格，年轻潮流感，${industry}，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
+  // 核心修改：完全移除霓虹/时间相关内容，只保留国潮风核心描述
+  return `${guochaoStyle}，东方国潮风格，年轻潮流感，${industry}，品牌店名+${variant}，${font}，字体零错误、比例精准、笔画清晰可辨，8K高清，商业写实效果图，可直接施工参考`;
 }
 
 /**
