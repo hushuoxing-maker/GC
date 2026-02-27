@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <meta charset="utf-8">
-<title>古月·国潮风夜晚异形门头提示词生成器</title>
+<title>古月·国潮风门头提示词生成器</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Microsoft YaHei",sans-serif;}
 body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:100vh; padding:20px 0 60px; color:#fff;}
@@ -10,8 +10,8 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 .header p{font-size:15px;opacity:0.9;}
 .input-wrap{max-width:800px;margin:0 auto 30px;background:#fff;padding:30px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,0.05);color:#1F2937;}
 .label{font-size:16px;color:#1F2937;font-weight:500;margin-bottom:10px;}
-.input-box{width:100%;padding:15px 20px;font-size:16px;border:1px solid #E5E7EB;border-radius:10px;outline:none;transition:0.2s;margin-bottom:20px;}
-.input-box:focus{border-color:#E63946;box-shadow:0 0 0 4px rgba(230,57,70,0.1);}
+.input-box, select{width:100%;padding:15px 20px;font-size:16px;border:1px solid #E5E7EB;border-radius:10px;outline:none;transition:0.2s;margin-bottom:20px;}
+.input-box:focus, select:focus{border-color:#E63946;box-shadow:0 0 0 4px rgba(230,57,70,0.1);}
 .gen-btn{width:100%;padding:16px;background:linear-gradient(90deg, #E63946, #FF8FA3); color:#fff;border:none;border-radius:10px;font-size:17px;font-weight:500;cursor:pointer;transition:0.3s;}
 .gen-btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(230,57,70,0.15);}
 .gen-btn:disabled{background:#FFC2D1;cursor:not-allowed;transform:none;}
@@ -27,13 +27,34 @@ body{background: linear-gradient(135deg, #1C0A1C 0%, #3A0E3A 100%); min-height:1
 </style>
 
 <div class="header">
-  <h1>🌙 古月·国潮风夜晚异形门头提示词生成器</h1>
-  <p>夜晚正立面100%展示｜异形造型｜霓虹灯｜8K写实｜字体零错误｜100%可施工</p>
+  <h1>🌙 古月·国潮风门头提示词生成器</h1>
+  <p>白天/夜晚｜异形造型｜霓虹灯/自然光｜8K写实｜字体零错误｜100%可施工</p>
 </div>
 
 <div class="input-wrap">
   <div class="label">请输入店铺行业类型（必填）</div>
   <input type="text" class="input-box" id="industryInput" placeholder="例如：国潮茶饮、新中式餐饮、文创周边、国潮服饰、特色小吃、国风美妆">
+  
+  <div class="label">请选择时间效果</div>
+  <select id="timeSelect">
+    <option value="夜晚" selected>夜晚</option>
+    <option value="白天">白天</option>
+  </select>
+  
+  <div class="label">请选择门头造型</div>
+  <select id="shapeSelect">
+    <option value="波浪异形门头">波浪异形门头</option>
+    <option value="圆弧造型门头">圆弧造型门头</option>
+    <option value="折角异形门头">折角异形门头</option>
+    <option value="多边形造型门头">多边形造型门头</option>
+    <option value="立体浮雕门头">立体浮雕门头</option>
+    <option value="悬挑异形门头">悬挑异形门头</option>
+    <option value="斜切造型门头">斜切造型门头</option>
+    <option value="拱形门头">拱形门头</option>
+    <option value="悬浮立体门头">悬浮立体门头</option>
+    <option value="雕花异形门头">雕花异形门头</option>
+  </select>
+  
   <button class="gen-btn" id="genBtn" onclick="generatePrompts()">🚀 生成20组提示词</button>
 </div>
 
@@ -52,20 +73,24 @@ const variants=[
   "核心产品+国潮吸睛标语","爆款产品+东方新潮标语"
 ];
 
-// 异形门头造型列表
-const shapes=[
-  "波浪异形门头","圆弧造型门头","折角异形门头","多边形造型门头","立体浮雕门头",
-  "悬挑异形门头","斜切造型门头","拱形门头","悬浮立体门头","雕花异形门头"
-];
-
 // 数组随机打乱函数
 function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 
-// 创建单条提示词（强化正立面展示和字体无错误）
-function createPrompt(industry,index){
-  const variant=variants[index%variants.length];
-  const shape=shapes[index%shapes.length];
-  return `夜晚，霓虹灯光，${shape}，店铺正立面100%完全展示，无任何遮挡，正面平视视角，无透视畸变，国潮门头，潮流醒目，东方国潮，强视觉冲击，年轻网红感，${industry}店铺门头，烤漆板、霓虹灯、亚克力发光字、不锈钢、软膜灯箱、国潮图案装饰板，品牌店名+${variant}，粗体国潮字体，字体零错误、无错别字、笔画清晰可辨、比例精准，夜间霓虹灯光、强光发光字、氛围灯，8K高清，商业写实效果图，细节丰富，色彩自然，可直接施工参考`;
+// 创建单条提示词（适配时间/造型选择，强化正立面+字体要求）
+function createPrompt(industry){
+  // 获取用户选择的时间和造型
+  const time = document.getElementById("timeSelect").value;
+  const shape = document.getElementById("shapeSelect").value;
+  // 随机选择变体
+  const variant = variants[Math.floor(Math.random() * variants.length)];
+  
+  // 时间效果描述（区分白天/夜晚）
+  const timeDesc = time === "夜晚" 
+    ? "夜晚，霓虹灯光，夜间霓虹灯光、强光发光字、氛围灯、灯光反射"
+    : "白天，自然光，白天自然光、平视无遮挡、柔和正面光、无反光";
+  
+  // 拼接完整提示词
+  return `${timeDesc}，${shape}，店铺正立面100%完全展示，无任何遮挡，正面平视视角，无透视畸变，国潮门头，潮流醒目，东方国潮，强视觉冲击，年轻网红感，${industry}店铺门头，烤漆板、霓虹灯（白天效果则为铝塑板）、亚克力发光字、不锈钢、软膜灯箱、国潮图案装饰板，品牌店名+${variant}，粗体国潮字体，字体零错误、无错别字、笔画清晰可辨、比例精准，8K高清，商业写实效果图，细节丰富，色彩自然，可直接施工参考`;
 }
 
 // 复制单条提示词（增加状态恢复和异常处理）
@@ -107,13 +132,13 @@ function downloadTxt(){
   const blob=new Blob([allPrompts.join("\n\n")],{type:"text/plain;charset=utf-8"});
   const link=document.createElement("a");
   link.href=URL.createObjectURL(blob);
-  link.download="国潮夜晚异形门头提示词.txt";
+  link.download="国潮风门头提示词.txt";
   link.click();
   // 释放URL对象，避免内存泄漏
   URL.revokeObjectURL(link.href);
 }
 
-// 生成20组提示词（修复重复代码和乱码）
+// 生成20组提示词（适配新的时间/造型选择）
 function generatePrompts(){
   const industry=document.getElementById("industryInput").value.trim();
   const genBtn=document.getElementById("genBtn");
@@ -134,13 +159,11 @@ function generatePrompts(){
   setTimeout(()=>{
     let html=""; 
     const shuffledVariants=shuffle([...variants]);
-    const shuffledShapes=shuffle([...shapes]);
     
-    // 生成20组提示词
+    // 生成20组提示词（每组随机变体，适配选择的时间/造型）
     for(let i=0;i<20;i++){
-      const prompt=createPrompt(industry,i);
+      const prompt=createPrompt(industry);
       allPrompts.push(prompt);
-      // 修复重复的item-text标签
       html+=`<div class="result-item">
         <div class="item-text">${i+1}. ${prompt}</div>
         <button class="copy-btn" onclick="copySingle('${prompt.replace(/'/g,"&apos;")}',this)">复制</button>
